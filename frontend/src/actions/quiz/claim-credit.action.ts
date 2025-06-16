@@ -6,6 +6,8 @@ import { generateCertificate } from "../../lib/certificateGenerator";
 import { uploadToIPFS } from "../../lib/ipfsUploader";
 import { unlink } from "fs/promises";
 import { existsSync } from "fs";
+import { fetchFilesFromPinata } from "./get-files.action";
+import { GROUP_ID } from "@/constants/data";
 
 export async function claimCreditForStudent(dto: { userAddress: `0x${string}` }) {
     const { userAddress } = dto;
@@ -147,10 +149,12 @@ export async function claimBadgeWithCertificate({
             }
         }
 
-        await generateCertificate({ name, course, date, output: certPath });
+        const adjustedDate: string = new Date(date).toISOString().split("T")[0];
 
-        const { metadataIpfs } = await uploadToIPFS(certPath, name, course, date);
-        const additionalData = `https://aqua-robust-coyote-537.mypinata.cloud/ipfs/${metadataIpfs}`;
+        await generateCertificate({ name, course, date: adjustedDate, output: certPath });
+
+        const { metadataIpfs } = await uploadToIPFS(certPath, name, course, date, BigInt(tokenId!));
+        const additionalData = metadataIpfs;
 
         let certificateTokenId = tokenId;
 
@@ -203,15 +207,51 @@ export async function claimBadgeWithCertificate({
             };
         }
 
+        const latestUri = await fetchFilesFromPinata(GROUP_ID!, BigInt(tokenId!), process.env.PINATA_JWT!);
+
+        if (!latestUri) {
+            return {
+                error: "Failed to fetch latest URI from Pinata.",
+                details: "No matching file found for the given token ID",
+            };
+        }
+        console.log(`Latest URI fetched from Pinata: ${latestUri}`);
+
         console.log(`Issuing certificate with tokenId: ${certificateTokenId}...`);
 
         const txHash = await walletClient.writeContract({
-            args: [userAddress, certificateTokenId, additionalData],
+            args: [userAddress, certificateTokenId, latestUri!],
             ...courseBadgeContract,
             functionName: "issueCertificate",
         });
 
+        const receipt = await publicClient.waitForTransactionReceipt({ hash: txHash });
+
+        if (receipt.status === "reverted") {
+            return { error: "Certificate issue transaction reverted" };
+        }
+
         console.log(`Certificate issued successfully! Transaction: ${txHash}`);
+
+        console.log(`Setting token URI for tokenId: ${certificateTokenId} to ${latestUri}...`);
+
+        const setTokenUriTx = await walletClient.writeContract({
+            functionName: "setTokenURI",
+            args: [certificateTokenId, latestUri!],
+            ...courseBadgeContract
+        })
+
+        console.log(`Token URI set successfully! Transaction: ${setTokenUriTx}`);
+        const tokenUriReceipt = await publicClient.waitForTransactionReceipt({ hash: setTokenUriTx });
+
+        if (tokenUriReceipt.status === "reverted") {
+            return {
+                error: "Failed to set token URI.",
+                details: "The setTokenURI transaction was reverted",
+            };
+        }
+
+        console.log(`Token URI set successfully in block: ${tokenUriReceipt.blockNumber}`);
 
         try {
             if (existsSync(certPath)) {

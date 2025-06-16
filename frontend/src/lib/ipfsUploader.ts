@@ -1,5 +1,6 @@
-import { PinataSDK } from 'pinata';
-import fs from 'fs';
+import { PinataSDK } from "pinata";
+import fs from "fs";
+import { GROUP_ID, IPFS_GATEWAY_BASE } from "@/constants/data";
 
 export const pinata = new PinataSDK({
     pinataJwt: `${process.env.PINATA_JWT}`,
@@ -9,6 +10,11 @@ export const pinata = new PinataSDK({
 interface MetadataAttribute {
     trait_type: string;
     value: string;
+}
+
+interface UploadToIPFSResult {
+    imageIpfs: string;
+    metadataIpfs: string;
 }
 
 export interface CertificateMetadata {
@@ -37,43 +43,36 @@ function generateMetadataJSON(
     };
 }
 
-interface UploadToIPFSResult {
-    imageIpfs: string;
-    metadataIpfs: string;
-}
-
 export async function uploadToIPFS(
     certificatePath: string,
     name: string,
     course: string,
-    date: string
+    date: string,
+    tokenId: bigint
 ): Promise<UploadToIPFSResult> {
     try {
+        const gatewayBase =
+            IPFS_GATEWAY_BASE + "bafkreibte6wv75o65qa3hyouyf2pdkuapwfbd5vdwcyji6b2hrgyxpxvlu";
+        const metadataUrl = `${gatewayBase}/${tokenId}.json`;
+
         const metadata: CertificateMetadata = generateMetadataJSON(name, course, date, "");
 
         const fileBuffer: Buffer = fs.readFileSync(certificatePath);
-        const file: File = new File([fileBuffer], `certificate-${name.replace(/\s+/g, "-")}.jpg`, {
+        const file: File = new File([fileBuffer], `${tokenId}.jpg`, {
             type: "image/jpeg",
         });
-
-        const fileResult: { cid: string } = await pinata.upload.public.file(file);
-
-        console.log("✅ Image uploaded to IPFS:", `ipfs://${fileResult.cid}`);
+        const fileResult: { cid: string } = await pinata.upload.public.file(file).group(GROUP_ID!);
 
         metadata.image = `ipfs://${fileResult.cid}`;
 
-        const metadataResult: { cid: string } = await pinata.upload.public.json(metadata);
-
-        console.log("✅ Metadata uploaded to IPFS:", `ipfs://${metadataResult.cid}`);
-        console.log("🌐 Gateway URLs:");
-        console.log(`   Image: https://${process.env.NEXT_PUBLIC_GATEWAY_URL}/ipfs/${fileResult.cid}`);
-        console.log(
-            `   Metadata: https://${process.env.NEXT_PUBLIC_GATEWAY_URL}/ipfs/${metadataResult.cid}`
-        );
+        const metadataFile = new File([JSON.stringify(metadata)], `${tokenId}.json`, {
+            type: "application/json",
+        });
+        await pinata.upload.public.file(metadataFile).group(GROUP_ID!);
 
         return {
             imageIpfs: fileResult.cid,
-            metadataIpfs: metadataResult.cid,
+            metadataIpfs: metadataUrl,
         };
     } catch (err) {
         console.error("❌ Error uploading to IPFS:", err);

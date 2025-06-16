@@ -100,8 +100,7 @@ export default function ProfilePage() {
   });
 
   const isEnrolled =
-    !(!accountOffChain?.success && accountOffChain?.error === "Not Found") &&
-    !isLoading;
+    !(!accountOffChain?.success && accountOffChain?.error === "Not Found") && !isLoading;
   return (
     <div className="min-h-screen bg-gray-50">
       <Header isWalletConnected={isConnected} userTokens={userTokens} />
@@ -122,15 +121,11 @@ export default function ProfilePage() {
                         <h1 className="text-3xl font-bold text-gray-900 mb-2">
                           {accountOffChain.data.name}
                         </h1>
-                        <p className="text-gray-600 mb-4">
-                          {accountOffChain.data.description}
-                        </p>
+                        <p className="text-gray-600 mb-4">{accountOffChain.data.description}</p>
                       </>
                     ) : (
                       <>
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                          CryptoLearner
-                        </h1>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">CryptoLearner</h1>
                         <p className="text-gray-600 mb-4">Web3 rookie..</p>
                       </>
                     )
@@ -139,9 +134,7 @@ export default function ProfilePage() {
                   )}
 
                   <p className="text-gray-600 mb-4 flex items-center gap-1">
-                    Wallet:{" "}
-                    <span className="block w-50 truncate">{address}</span> •
-                    Joined{" "}
+                    Wallet: <span className="block w-50 truncate">{address}</span> • Joined{" "}
                     {accountOffChain?.success &&
                       new Date(accountOffChain.data.createdAt).toDateString()}
                   </p>
@@ -152,8 +145,7 @@ export default function ProfilePage() {
                       </div>
                       <div className="bg-[#FF6F61] text-white px-4 py-2 rounded-full text-sm font-medium">
                         NFT ID:{" "}
-                        {accountOffChain?.success &&
-                          "#" + accountOffChain.data.studentNFTId}
+                        {accountOffChain?.success && "#" + accountOffChain.data.studentNFTId}
                       </div>
                     </div>
                   )}
@@ -162,9 +154,7 @@ export default function ProfilePage() {
                 <div className="flex flex-col items-center space-y-4">
                   <div className="text-center">
                     {isEnrolled ? (
-                      <div className="text-3xl font-bold text-[#58CC02] mb-1">
-                        {cc?.toString()}
-                      </div>
+                      <div className="text-3xl font-bold text-[#58CC02] mb-1">{cc?.toString()}</div>
                     ) : (
                       "ENROLL NOW"
                     )}
@@ -202,21 +192,14 @@ export default function ProfilePage() {
 
                 <div className="card text-center">
                   <Trophy className="w-8 h-8 text-[#4E6C50] mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-gray-900 mb-1">
-                    {achievements.length}
-                  </div>
+                  <div className="text-2xl font-bold text-gray-900 mb-1">{achievements.length}</div>
                   <div className="text-sm text-gray-600">Achievements</div>
                 </div>
 
                 <div className="card text-center">
                   <Wallet className="w-8 h-8 text-[#58CC02] mx-auto mb-2" />
                   <div className="text-2xl font-bold text-gray-900 mb-1">
-                    {Math.round(
-                      (userProfile.completedCourses /
-                        userProfile.totalCourses) *
-                        100
-                    )}
-                    %
+                    {Math.round((userProfile.completedCourses / userProfile.totalCourses) * 100)}%
                   </div>
                   <div className="text-sm text-gray-600">Completion</div>
                 </div>
@@ -235,9 +218,7 @@ export default function ProfilePage() {
                       className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors"
                     >
                       <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-medium text-gray-900">
-                          {course.title}
-                        </h3>
+                        <h3 className="font-medium text-gray-900">{course.title}</h3>
                         <div className="text-sm text-gray-500 flex items-center">
                           <Calendar className="w-4 h-4 mr-1" />
                           {new Date(course.completedDate).toLocaleDateString()}
@@ -248,9 +229,7 @@ export default function ProfilePage() {
                         <div className="flex items-center space-x-4">
                           <div className="text-sm">
                             Score:{" "}
-                            <span className="font-medium text-[#58CC02]">
-                              {course.score}%
-                            </span>
+                            <span className="font-medium text-[#58CC02]">{course.score}%</span>
                           </div>
                           <div className="text-sm">
                             Earned:{" "}
@@ -281,12 +260,8 @@ export default function ProfilePage() {
                     >
                       <div className="text-2xl">{achievement.icon}</div>
                       <div className="flex-1">
-                        <h3 className="font-medium text-gray-900 text-sm">
-                          {achievement.title}
-                        </h3>
-                        <p className="text-xs text-gray-600 mb-1">
-                          {achievement.description}
-                        </p>
+                        <h3 className="font-medium text-gray-900 text-sm">{achievement.title}</h3>
+                        <p className="text-xs text-gray-600 mb-1">{achievement.description}</p>
                         <div className="text-xs text-gray-500">
                           {new Date(achievement.date).toLocaleDateString()}
                         </div>
@@ -303,14 +278,9 @@ export default function ProfilePage() {
                 </h2>
 
                 <div className="bg-gradient-to-br from-[#58CC02] to-[#4E6C50] rounded-lg overflow-hidden text-white text-center">
-                  {/* <img src="/cedura-university.png" alt="cedura-university" /> */}
                   {accountOffChain?.success ? (
                     <NFTCanvas
-                      name={
-                        (accountOffChain?.success &&
-                          accountOffChain.data.name) ||
-                        ""
-                      }
+                      name={(accountOffChain?.success && accountOffChain.data.name) || ""}
                     />
                   ) : (
                     <div className="w-full aspect-square grid place-content-center">
@@ -350,12 +320,5 @@ function NFTCanvas(props: { name: string }) {
     ctx.fillStyle = "black";
     ctx.fillText(props.name, 896, 1024);
   }, [props.name]);
-  return (
-    <canvas
-      className="w-full h-full"
-      ref={canvasRef}
-      width={2048}
-      height={2048}
-    />
-  );
+  return <canvas className="w-full h-full" ref={canvasRef} width={2048} height={2048} />;
 }

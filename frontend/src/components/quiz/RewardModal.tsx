@@ -3,23 +3,34 @@
 import {
   claimBadgeWithCertificate,
   claimCreditForStudent,
+  createCertificateType,
 } from "@/actions/quiz/claim-credit.action";
-import { erc20Contract } from "@/constants/erc20";
 import { toast } from "@/hooks/use-toast";
 import { X, Trophy, Coins } from "lucide-react";
 import { useState } from "react";
 import { useAccount } from "wagmi";
+import { useQuery } from "@tanstack/react-query";
 
 interface RewardModalProps {
   tokens: number;
   badge: string;
-  onClose: () => void;
 }
 
-export function RewardModal({ tokens, badge, onClose }: RewardModalProps) {
+export function RewardModal({ tokens, badge }: RewardModalProps) {
+  const [isModalOpen, setIsModalOpen] = useState(true);
   const { address: userAddress, isConnected } = useAccount();
+  const { data: accountOffChain } = useQuery({
+    queryKey: ["profile", userAddress, isConnected],
+    queryFn: async () => {
+      const response = await fetch("/api/user/" + userAddress);
+      return response.json();
+    },
+    enabled: isConnected,
+  });
   const [isLoadingToken, setIsloadingToken] = useState(false);
   const [isLoadingNFT, setIsLoadingNFT] = useState(false);
+  const [txHash, setTxHash] = useState<string | null>(null);
+  const [tokenTxHash, setTokenTxHash] = useState<string | null>(null);
 
   const claimToken = async () => {
     setIsloadingToken(true);
@@ -33,12 +44,33 @@ export function RewardModal({ tokens, badge, onClose }: RewardModalProps) {
         toast({
           title: "Token Claim Failed",
           description: result.details || "An error occurred while claiming tokens.",
-          variant: "destructive",
         });
       } else {
+        let description = "You have successfully claimed your tokens.";
+        if (result.transactionHash) {
+          setTokenTxHash(result.transactionHash);
+          description += ` | `;
+        }
         toast({
           title: "Tokens Claimed!",
-          description: "You have successfully claimed your tokens.",
+          description: (
+            <span>
+              {description}
+              {result.transactionHash && (
+                <>
+                  <br />
+                  <a
+                    href={`https://testnet.monadexplorer.com/tx/${result.transactionHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline text-blue-600"
+                  >
+                    View on Monad Explorer
+                  </a>
+                </>
+              )}
+            </span>
+          ),
         });
       }
 
@@ -48,7 +80,6 @@ export function RewardModal({ tokens, badge, onClose }: RewardModalProps) {
       toast({
         title: "Token Claim Error",
         description: error.message,
-        variant: "destructive",
       });
     } finally {
       setIsloadingToken(false);
@@ -62,58 +93,87 @@ export function RewardModal({ tokens, badge, onClose }: RewardModalProps) {
       toast({
         title: "Wallet Not Connected",
         description: "Please connect your wallet to claim the badge.",
-        variant: "destructive",
       });
       return;
     }
 
+    const createResult = await createCertificateType({
+      name: `${badge} Certificate`,
+      maxSupply: BigInt(1000), // Reasonable max supply
+      uriCertificate: "ipfs://pending",
+    });
+
     try {
       const result = await claimBadgeWithCertificate({
         userAddress: userAddress as `0x${string}`,
-        name: "Rama",
+        name: accountOffChain?.data?.name || "",
+        tokenId: BigInt(createResult.tokenId!),
         course: badge,
-        date: new Date().toISOString().split("T")[0],
+        date: new Date().toISOString(),
       });
 
       if (result && typeof result === "object" && "tokenId" in result) {
         const tokenIdStr =
           typeof result.tokenId === "bigint" ? result.tokenId.toString() : String(result.tokenId);
-
+        let description = `Badge claimed successfully! NFT: #${tokenIdStr}`;
+        if (result.transactionHash) {
+          setTxHash(result.transactionHash);
+          description += ` | `;
+        }
         toast({
           title: "Badge Claimed!",
-          description: `Badge claimed successfully! NFT: #${tokenIdStr}`,
+          description: (
+            <span>
+              {description}
+              {result.transactionHash && (
+                <>
+                  <br />
+                  <a
+                    href={`https://testnet.monadexplorer.com/tx/${result.transactionHash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline text-blue-600"
+                  >
+                    View on Monad Explorer
+                  </a>
+                </>
+              )}
+            </span>
+          ),
         });
       } else if (typeof result === "string") {
         toast({
           title: "Badge Claim Error",
           description: result,
-          variant: "destructive",
         });
       } else {
         toast({
           title: "Badge Claim Error",
           description: "Unknown error occurred while claiming badge.",
-          variant: "destructive",
         });
       }
     } catch (error: any) {
       console.error("Failed to claim badge:", error);
-
       toast({
         title: "Badge Claim Error",
         description: error.message,
-        variant: "destructive",
       });
     } finally {
       setIsLoadingNFT(false);
     }
   };
 
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
+  if (!isModalOpen) return null;
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl max-w-md w-full p-8 text-center animate-slide-up">
         <button
-          onClick={onClose}
+          onClick={handleCloseModal}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 cursor-pointer"
         >
           <X className="w-6 h-6" />
@@ -161,7 +221,7 @@ export function RewardModal({ tokens, badge, onClose }: RewardModalProps) {
           </div>
         </div>
 
-        <button onClick={onClose} className="w-full btn-primary cursor-pointer">
+        <button onClick={handleCloseModal} className="w-full btn-primary cursor-pointer">
           Continue Learning
         </button>
       </div>
