@@ -1,10 +1,10 @@
 "use client";
 
-import { ArrowRight, Play, BookOpen, Users, Trophy } from "lucide-react";
-import Link from "next/link";
+import { Play, BookOpen, Users, Trophy } from "lucide-react";
 import Counter from "../ui/couter";
 import { useEffect, useState } from "react";
 import Sparkles from "../ui/sparkle";
+import { StartLearningButton } from "../button/start-learning";
 
 export function HeroSection() {
   const [count, setCount] = useState({
@@ -21,7 +21,7 @@ export function HeroSection() {
     });
   }, []);
   return (
-    <section className="relative bg-gradient-to-br from-white via-green-50 to-blue-50 pt-20 pb-32 overflow-hidden">
+    <section className="relative bg-gradient-to-br from-white via-green-50 to-blue-50 pt-20 pb-32 overflow-hidden min-h-[calc(100vh-64px)]">
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="animate-fade-in">
@@ -34,15 +34,13 @@ export function HeroSection() {
               Earn <span className="text-gradient">Rewards</span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-              Master Web3 technologies with our interactive courses, earn crypto rewards, and build
-              your blockchain expertise with hands-on projects and real-world applications.
+              Master Web3 technologies with our interactive courses, earn crypto
+              rewards, and build your blockchain expertise with hands-on
+              projects and real-world applications.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
-              <Link href="/courses" className="btn-primary inline-flex items-center justify-center">
-                Start Learning
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Link>
+              <StartLearningButton />
               <button className="inline-flex items-center justify-center px-6 py-3 border-2 border-gray-300 rounded-lg font-medium text-gray-700 hover:border-[#58CC02] hover:text-[#58CC02] transition-all duration-200">
                 <Play className="w-5 h-5 mr-2" />
                 Watch Demo
@@ -116,13 +114,20 @@ export function HeroSection() {
                       <BookOpen className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <div className="font-medium text-gray-900">Smart Contracts 101</div>
-                      <div className="text-sm text-gray-500">8 weeks • Intermediate</div>
+                      <div className="font-medium text-gray-900">
+                        Smart Contracts 101
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        8 weeks • Intermediate
+                      </div>
                     </div>
                   </div>
 
                   <div className="progress-bar">
-                    <div className="progress-fill" style={{ width: "75%" }}></div>
+                    <div
+                      className="progress-fill"
+                      style={{ width: "75%" }}
+                    ></div>
                   </div>
 
                   <div className="flex justify-between items-center">
