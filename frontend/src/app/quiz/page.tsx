@@ -201,13 +201,7 @@ export default function QuizPage() {
 
       <Footer />
 
-      {showRewardModal && (
-        <RewardModal
-          tokens={quizReward.tokens}
-          badge={quizReward.badge}
-          onClose={() => setShowRewardModal(false)}
-        />
-      )}
+      {showRewardModal && <RewardModal tokens={quizReward.tokens} badge={quizReward.badge} />}
     </div>
   );
 }

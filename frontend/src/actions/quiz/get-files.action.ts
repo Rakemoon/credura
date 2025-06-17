@@ -16,13 +16,17 @@ interface PinataApiResponse {
     [key: string]: any;
 }
 
-export async function fetchFilesFromPinata(groupId: string, tokenId: BigInt, authToken: string) {
+export async function fetchFilesFromPinata(
+    groupId: string,
+    tokenId: string | number | bigint,
+    authToken: string
+) {
     try {
         const response = await fetch(`https://api.pinata.cloud/data/pinList?group_id=${groupId}`, {
-            method: 'GET',
+            method: "GET",
             headers: {
-                'Authorization': `Bearer ${authToken}`,
-                'Content-Type': 'application/json',
+                Authorization: `Bearer ${authToken}`,
+                "Content-Type": "application/json",
             },
         });
 
@@ -35,7 +39,7 @@ export async function fetchFilesFromPinata(groupId: string, tokenId: BigInt, aut
 
         const matchingFile: PinataFile | undefined = files.find((file: PinataFile) => {
             const metadata: PinataFileMetadata = file.metadata || {};
-            return metadata.name && metadata.name.startsWith(tokenId.toString());
+            return metadata.name && metadata.name.startsWith(String(tokenId));
         });
 
         if (matchingFile) {
@@ -45,7 +49,7 @@ export async function fetchFilesFromPinata(groupId: string, tokenId: BigInt, aut
             return null;
         }
     } catch (error) {
-        console.error('Error fetching files from Pinata:', error);
+        console.error("Error fetching files from Pinata:", error);
         throw error;
     }
 }

@@ -17,7 +17,7 @@ export const wagmiConfig = getDefaultConfig({
   transports: {
     [monadTestnet.id]: http(),
   },
-  ssr: false,
+  ssr: true,
 });
 
 const queryClient = new QueryClient();

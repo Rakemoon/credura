@@ -107,7 +107,10 @@ export function RewardModal({ tokens, badge }: RewardModalProps) {
       const result = await claimBadgeWithCertificate({
         userAddress: userAddress as `0x${string}`,
         name: accountOffChain?.data?.name || "",
-        tokenId: BigInt(createResult.tokenId!),
+        tokenId:
+          createResult.tokenId !== undefined && createResult.tokenId !== null
+            ? BigInt(createResult.tokenId)
+            : BigInt(0),
         course: badge,
         date: new Date().toISOString(),
       });

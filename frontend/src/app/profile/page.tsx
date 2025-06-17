@@ -21,6 +21,7 @@ import { FindUserByAddressDto } from "../api/user/[address]/route";
 import { EnrollDialog } from "./enrol-dialog";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { campusCreditAbi, campusCreditAddress } from "@/abi/campus-credit";
+import { formatUnits } from "viem";
 
 export default function ProfilePage() {
   const { isConnected, address } = useAccount();
@@ -154,7 +155,9 @@ export default function ProfilePage() {
                 <div className="flex flex-col items-center space-y-4">
                   <div className="text-center">
                     {isEnrolled ? (
-                      <div className="text-3xl font-bold text-[#58CC02] mb-1">{cc?.toString()}</div>
+                      <div className="text-3xl font-bold text-[#58CC02] mb-1">
+                        {formatUnits(cc ?? BigInt(0), 18)}
+                      </div>
                     ) : (
                       "ENROLL NOW"
                     )}
